@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Login | AI-IDS</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body class="login-page">
+
+<div class="login-container">
+
+    <div class="login-card">
+
+        <div class="login-brand">
+
+            <div class="login-shield">
+
+                <i class="bi bi-shield-lock"></i>
+
+            </div>
+
+            <h2>AI-IDS</h2>
+
+            <p>
+                AI-Based Website Intrusion
+                Detection System
+            </p>
+
+        </div>
+
+
+        <div class="login-heading">
+
+            <h4>Administrator Login</h4>
+
+            <p>
+                Sign in to access the security
+                monitoring console.
+            </p>
+
+        </div>
+
+
+        {% with messages =
+            get_flashed_messages(
+                with_categories=true
+            )
+        %}
+
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <div class="alert
+                                alert-{{ category }}
+                                login-alert">
+
+                        <i class="bi
+                                  bi-exclamation-circle
+                                  me-2"></i>
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <form method="POST"
+              action="{{ url_for('login') }}">
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Username
+                </label>
+
+                <div class="login-input-group">
+
+                    <i class="bi bi-person"></i>
+
+                    <input
+                        type="text"
+                        name="username"
+                        class="form-control"
+                        placeholder="Enter username"
+                        autocomplete="username"
+                        required
+                        autofocus>
+
+                </div>
+
+            </div>
+
+
+            <div class="mb-4">
+
+                <label class="form-label">
+                    Password
+                </label>
+
+                <div class="login-input-group">
+
+                    <i class="bi bi-lock"></i>
+                    <input type="hidden"
+       name="csrf_token"
+       value="{{ csrf_token() }}">
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        class="form-control"
+                        placeholder="Enter password"
+                        autocomplete="current-password"
+                        required>
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        id="togglePassword">
+
+                        <i class="bi bi-eye"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="btn login-button w-100">
+
+                <i class="bi bi-box-arrow-in-right me-2"></i>
+
+                Sign In
+
+            </button>
+
+        </form>
+
+
+        <div class="login-security">
+
+            <i class="bi bi-lock-fill"></i>
+
+            Authorized administrators only
+
+        </div>
+
+    </div>
+
+
+    <div class="login-footer">
+
+        AI-Based Website Traffic Monitoring
+        & Intrusion Detection System
+
+    </div>
+
+</div>
+
+
+<script>
+
+const togglePassword =
+    document.getElementById("togglePassword");
+
+const password =
+    document.getElementById("password");
+
+
+togglePassword.addEventListener(
+    "click",
+    function () {
+
+        const hidden =
+            password.type === "password";
+
+        password.type =
+            hidden ? "text" : "password";
+
+        this.innerHTML =
+            hidden
+                ? '<i class="bi bi-eye-slash"></i>'
+                : '<i class="bi bi-eye"></i>';
+    }
+);
+
+</script>
+
+</body>
+
+</html>

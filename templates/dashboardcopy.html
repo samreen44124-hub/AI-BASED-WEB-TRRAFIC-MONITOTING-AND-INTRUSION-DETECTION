@@ -1,0 +1,863 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | AI-IDS{% endblock %}
+
+{% block page_title %}Security Dashboard{% endblock %}
+
+
+{% block content %}
+<div class="d-flex justify-content-end mb-3">
+
+    <span id="dashboardLiveStatus"
+          class="badge bg-success">
+
+        <i class="bi bi-circle-fill me-1"></i>
+        Live
+
+    </span>
+
+</div>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 mb-4">
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+                    <div class="stat-label">TOTAL TRAFFIC</div>
+                    <div class="stat-value" id="dashboardTotal">{{ total_traffic|default(0) }}</div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-activity"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Total monitored HTTP requests
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+                    <div class="stat-label">NORMAL TRAFFIC</div>
+                    <div class="stat-value"  id="dashboardNormal">{{ normal_traffic|default(0) }}</div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Requests classified as normal
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+                    <div class="stat-label">INTRUSIONS</div>
+                    <div class="stat-value"  id="dashboardIntrusion">{{ intrusion_count|default(0) }}</div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Confirmed intrusion events
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+                    <div class="stat-label">CRITICAL ALERTS</div>
+                    <div class="stat-value"  id="dashboardCritical">{{ critical_count|default(0) }}</div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-octagon"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                High-risk security events
+            </div>
+
+        </div>
+
+    </div>
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+                    <div class="stat-label">SUSPICIOUS</div>
+                    <div class="stat-value"  id="dashboardSuspicious">{{ suspicious_count|default(0) }}</div>
+                </div>
+
+                <div class="stat-icon">
+                   <i class="bi bi-exclamation-triangle"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                  HTTP anomalies detected
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="row g-3 mb-4">
+
+    <div class="col-lg-8">
+
+        <div class="security-card">
+
+            <h6 class="mb-4">
+                <i class="bi bi-graph-up me-2"></i>
+                Traffic Activity
+            </h6>
+
+            <canvas id="trafficChart" height="100"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-4">
+
+        <div class="security-card">
+
+            <h6 class="mb-4">
+                <i class="bi bi-pie-chart me-2"></i>
+                Traffic Classification
+            </h6>
+
+            <canvas id="attackChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="security-card">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h6 class="mb-1">Recent Security Events</h6>
+            <small class="text-secondary">
+                Latest traffic analyzed by the IDS
+            </small>
+        </div>
+
+        <a href="{{ url_for('traffic') }}"
+           class="btn btn-sm btn-outline-info">
+
+            View All Traffic
+
+        </a>
+
+    </div>
+
+
+    <div class="table-responsive">
+
+        <table class="security-table">
+
+            <thead>
+
+            <tr>
+                <th>TIME</th>
+                <th>SOURCE IP</th>
+                <th>METHOD</th>
+                <th>REQUEST</th>
+                <th>CLASSIFICATION</th>
+                <th>ATTACK TYPE</th>
+                <th>RISK</th>
+                <th>MODEL</th>
+    <th>CONFIDENCE</th>
+            </tr>
+
+            </thead>
+
+            <tbody id="dashboardRecentEvents">
+
+            {% for log in recent_logs %}
+
+            <tr>
+
+                <td>{{ log["created_at"] }}</td>
+
+                <td>{{ log["source_ip"] }}</td>
+
+                <td>{{ log["method"] }}</td>
+
+                <td>{{ log["path"] }}</td>
+
+                <td>
+{% if log["status"] == "Normal" %}
+
+    <span class="badge-normal">
+        Normal
+    </span>
+
+{% elif log["status"] == "Suspicious" %}
+
+    <span class="badge-warning">
+        Suspicious
+    </span>
+
+{% elif log["status"] == "Intrusion" %}
+
+    <span class="badge-danger">
+        Intrusion
+    </span>
+
+{% else %}
+
+    <span class="badge-warning">
+        {{ log["status"] }}
+    </span>
+
+{% endif %}
+
+                </td>
+
+                <td>{{ log["attack_type"] }}</td>
+
+                <td>{{ log["risk_level"] }}</td>
+
+               <td>
+    {{ log["model_name"] or "-" }}
+</td>
+
+<td>
+
+    {% if log["confidence"] is not none %}
+
+        {{ "%.4f"|format(log["confidence"]) }}
+
+    {% else %}
+
+        -
+
+    {% endif %}
+
+</td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="9"
+                    class="text-center text-secondary py-4">
+
+                    No traffic has been captured yet.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+const trafficContext =
+    document.getElementById(
+        "trafficChart"
+    );
+
+
+const trafficChart =
+    new Chart(
+        trafficContext,
+        {
+
+            type: "line",
+
+            data: {
+
+                labels:
+                    {{ traffic_activity
+                        | map(attribute='label')
+                        | list
+                        | tojson }},
+
+                datasets: [{
+                    label: "Requests",
+
+                    data:
+                        {{ traffic_activity
+                            | map(attribute='count')
+                            | list
+                            | tojson }},
+
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        labels: {
+                            color: "#94a3b8"
+                        }
+                    }
+                },
+
+                scales: {
+
+                    x: {
+
+                        ticks: {
+                            color: "#64748b"
+                        },
+
+                        grid: {
+                            color: "#1e293b"
+                        }
+                    },
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+                            color: "#64748b",
+
+                            precision: 0
+                        },
+
+                        grid: {
+                            color: "#1e293b"
+                        }
+                    }
+                }
+            }
+        }
+    );
+function escapeDashboardHtml(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value === null ||
+        value === undefined
+            ? ""
+            : String(value);
+
+    return div.innerHTML;
+}
+function updateDashboardStatistics(
+    statistics
+) {
+
+    const values = {
+
+        dashboardTotal:
+            statistics.total,
+
+        dashboardNormal:
+            statistics.normal,
+
+        dashboardSuspicious:
+            statistics.suspicious,
+
+        dashboardIntrusion:
+            statistics.intrusion,
+
+        dashboardCritical:
+            statistics.critical
+    };
+
+
+    Object.entries(
+        values
+    ).forEach(
+        ([id, value]) => {
+
+            const element =
+                document.getElementById(id);
+
+            if (element) {
+
+                element.textContent =
+                    value ?? 0;
+            }
+        }
+    );
+}
+function updateTrafficChart(activity) {
+
+    if (!trafficChart) {
+        return;
+    }
+
+
+    trafficChart.data.labels =
+        activity.map(
+            item => item.label
+        );
+
+
+    trafficChart.data.datasets[0].data =
+        activity.map(
+            item => item.count
+        );
+
+
+    trafficChart.update();
+}
+function updateClassificationChart(
+    statistics
+) {
+
+    if (!attackChart) {
+        return;
+    }
+
+
+    attackChart.data.labels = [
+        "Normal",
+        "Suspicious",
+        "Intrusion",
+        "Pending"
+    ];
+
+
+    attackChart.data.datasets[0].data = [
+
+        statistics.normal || 0,
+
+        statistics.suspicious || 0,
+
+        statistics.intrusion || 0,
+
+        statistics.pending || 0
+    ];
+
+
+    attackChart.update();
+}
+function statusBadgeDashboard(status) {
+
+    const safeStatus =
+        escapeDashboardHtml(
+            status || "Pending"
+        );
+
+
+    if (status === "Normal") {
+
+        return `
+            <span class="badge-normal">
+                Normal
+            </span>
+        `;
+    }
+
+
+    if (status === "Suspicious") {
+
+        return `
+            <span class="badge-warning">
+                Suspicious
+            </span>
+        `;
+    }
+
+
+    if (status === "Intrusion") {
+
+        return `
+            <span class="badge-danger">
+                Intrusion
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="badge-warning">
+            ${safeStatus}
+        </span>
+    `;
+}
+function updateRecentEvents(logs) {
+
+    const body =
+        document.getElementById(
+            "dashboardRecentEvents"
+        );
+
+
+    if (!body) {
+        return;
+    }
+
+
+    if (!logs || logs.length === 0) {
+
+        body.innerHTML = `
+            <tr>
+                <td colspan="9"
+                    class="text-center text-secondary py-4">
+
+                    No traffic has been captured yet.
+
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    body.innerHTML =
+        logs.map(log => {
+
+            let confidence = "-";
+
+
+            if (
+                log.confidence !== null &&
+                log.confidence !== undefined
+            ) {
+
+                const value =
+                    Number(log.confidence);
+
+                if (
+                    Number.isFinite(value)
+                ) {
+
+                    confidence =
+                        value.toFixed(4);
+                }
+            }
+
+
+            return `
+                <tr>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.created_at
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.source_ip
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.method
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.path
+                        )}
+                    </td>
+
+                    <td>
+                        ${statusBadgeDashboard(
+                            log.status
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.attack_type
+                            || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.risk_level
+                            || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            log.model_name
+                            || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeDashboardHtml(
+                            confidence
+                        )}
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+}
+let dashboardLoading = false;
+
+
+async function loadDashboardData() {
+
+    /*
+        Prevent overlapping requests if one API
+        request takes longer than the polling
+        interval.
+    */
+
+    if (dashboardLoading) {
+        return;
+    }
+
+
+    dashboardLoading = true;
+
+
+    try {
+
+        const response = await fetch(
+            "/api/dashboard-data",
+            {
+                cache: "no-store"
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Dashboard API error"
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message ||
+                "Dashboard update failed"
+            );
+        }
+
+
+        updateDashboardStatistics(
+            data.statistics
+        );
+
+
+        updateTrafficChart(
+            data.traffic_activity
+        );
+
+
+        updateClassificationChart(
+            data.statistics
+        );
+
+
+        updateRecentEvents(
+            data.recent_logs
+        );
+
+
+        setDashboardConnection(
+            true
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Dashboard update error:",
+            error
+        );
+
+
+        setDashboardConnection(
+            false
+        );
+
+    }
+
+    finally {
+
+        dashboardLoading = false;
+    }
+}
+function setDashboardConnection(
+    connected
+) {
+
+    const element =
+        document.getElementById(
+            "dashboardLiveStatus"
+        );
+
+
+    if (!element) {
+        return;
+    }
+
+
+    if (connected) {
+
+        element.className =
+            "badge bg-success";
+
+        element.innerHTML = `
+            <i class="bi bi-circle-fill me-1"></i>
+            Live
+        `;
+
+    } else {
+
+        element.className =
+            "badge bg-danger";
+
+        element.innerHTML = `
+            <i class="bi bi-wifi-off me-1"></i>
+            Connection Lost
+        `;
+    }
+}
+</script>
+<script>
+
+
+
+const attackContext =
+    document.getElementById("attackChart");
+
+const attackChart =
+    new Chart(attackContext, {
+
+    type: "doughnut",
+
+    data: {
+
+        labels: [
+    "Normal",
+    "Suspicious",
+    "Intrusion",
+    "Pending"
+],
+
+datasets: [{
+    data: [
+        {{ normal_traffic|default(0) }},
+        {{ suspicious_count|default(0) }},
+        {{ intrusion_count|default(0) }},
+        {{ pending_count|default(0) }}
+    ]
+}]
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+
+                position: "bottom",
+
+                labels: {
+                    color: "#94a3b8"
+                }
+            }
+        }
+    }
+});
+loadDashboardData();
+
+
+const dashboardInterval =
+    setInterval(
+        loadDashboardData,
+        2000
+    );
+</script>
+
+{% endblock %}

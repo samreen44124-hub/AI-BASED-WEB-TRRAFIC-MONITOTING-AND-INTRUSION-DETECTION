@@ -1,0 +1,637 @@
+{% extends "base.html" %}
+
+{% block title %}Live Traffic | AI-IDS{% endblock %}
+{% block page_title %}Live Traffic Monitor{% endblock %}
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h4 class="mb-1">Live Website Traffic</h4>
+        <small class="text-secondary">
+            Real-time HTTP requests captured from the monitored website
+        </small>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+
+        <div id="connectionStatus" class="monitoring-badge">
+            <span class="status-dot"></span>
+            Connected
+        </div>
+
+        <button id="pauseButton"
+                class="btn btn-outline-warning btn-sm">
+
+            <i class="bi bi-pause-fill"></i>
+            Pause
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- STATISTICS -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 mb-4">
+
+    <div class="col">
+        <div class="security-card">
+
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">TOTAL REQUESTS</div>
+                    <div class="stat-value"
+                         id="totalTraffic">
+                        {{ statistics.total }}
+                    </div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-activity"></i>
+                </div>
+            </div>
+
+            <div class="stat-footer">
+                Captured HTTP requests
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="col">
+        <div class="security-card">
+
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">NORMAL</div>
+
+                    <div class="stat-value"
+                         id="normalTraffic">
+                        {{ statistics.normal }}
+                    </div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+
+            <div class="stat-footer">
+                Normal traffic
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="col">
+        <div class="security-card">
+
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">INTRUSIONS</div>
+
+                    <div class="stat-value"
+                         id="intrusionTraffic">
+                        {{ statistics.intrusion }}
+                    </div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+            </div>
+
+            <div class="stat-footer">
+                Detected threats
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="col">
+        <div class="security-card">
+
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">CRITICAL</div>
+
+                    <div class="stat-value"
+                         id="criticalTraffic">
+                        {{ statistics.critical }}
+                    </div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-octagon"></i>
+                </div>
+            </div>
+
+            <div class="stat-footer">
+                Critical security events
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="security-card">
+
+            <div class="stat-header">
+                <div>
+                    <div class="stat-label">SUSPICIOUS</div>
+
+                    <div class="stat-value"
+                         id="suspiciousTraffic">
+                        {{ statistics.suspicious }}
+                    </div>
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-octagon"></i>
+                </div>
+            </div>
+
+            <div class="stat-footer">
+                Critical security events
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- FILTERS -->
+<div class="security-card mb-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h6 class="mb-1">
+                <i class="bi bi-funnel me-2"></i>
+                Traffic Filters
+            </h6>
+
+            <small class="text-secondary">
+                Filter currently displayed requests
+            </small>
+        </div>
+
+        <button id="clearFilters"
+                class="btn btn-sm btn-outline-secondary">
+
+            <i class="bi bi-x-circle me-1"></i>
+            Clear Filters
+
+        </button>
+
+    </div>
+
+
+    <div class="row g-3">
+
+        <div class="col-xl-4 col-md-6">
+
+            <label class="filter-label">Search</label>
+
+            <div class="input-group">
+
+                <span class="input-group-text filter-icon">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input type="text"
+                       id="searchInput"
+                       class="form-control filter-control"
+                       placeholder="IP, URL, path, attack...">
+
+            </div>
+
+        </div>
+
+
+        <div class="col-xl-2 col-md-3">
+
+            <label class="filter-label">Method</label>
+
+            <select id="methodFilter"
+                    class="form-select filter-control">
+
+                <option value="">All Methods</option>
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="PATCH">PATCH</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="col-xl-2 col-md-3">
+
+            <label class="filter-label">Status</label>
+
+            <select id="statusFilter"
+                    class="form-select filter-control">
+
+                <option value="">All Status</option>
+                <option value="Normal">Normal</option>
+                <option value="Suspicious">Suspicious</option>
+                <option value="Pending">Pending</option>
+                <option value="Intrusion">Intrusion</option>
+
+            </select>
+
+        </div>
+
+
+        <div class="col-xl-2 col-md-3">
+
+            <label class="filter-label">Attack</label>
+
+            <select id="attackFilter"
+                    class="form-select filter-control">
+
+                <option value="">All Attacks</option>
+                <option value="Unknown">Unknown</option>
+                <option value="SQL Injection">SQL Injection</option>
+                <option value="XSS">XSS</option>
+                <option value="Brute Force">Brute Force</option>
+                <option value="DDoS">DDoS</option>
+                <option value="Directory Traversal">
+                    Directory Traversal
+                </option>
+                <option value="Command Injection">
+                    Command Injection
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="col-xl-2 col-md-3">
+
+            <label class="filter-label">Risk</label>
+
+            <select id="riskFilter"
+                    class="form-select filter-control">
+
+                <option value="">All Risk</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TRAFFIC TABLE -->
+<div class="security-card">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h6 class="mb-1">
+                Captured Requests
+            </h6>
+
+            <small class="text-secondary">
+                Showing
+                <strong id="visibleCount">0</strong>
+                requests
+            </small>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <small class="text-secondary">
+                Display:
+            </small>
+
+            <select id="rowLimit"
+                    class="form-select form-select-sm row-limit">
+
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="table-responsive">
+
+        <table class="security-table">
+
+            <thead>
+            <tr>
+                <th>TIME</th>
+                <th>SOURCE IP</th>
+                <th>METHOD</th>
+                <th>REQUEST</th>
+                <th>STATUS</th>
+                <th>ATTACK TYPE</th>
+                <th>RISK</th>
+                <th>Model</th>
+                <th>Confidence</th>
+                <th>ACTION</th>
+            </tr>
+            </thead>
+
+
+            <tbody id="trafficTableBody">
+
+            {% for log in logs %}
+
+            <tr class="traffic-row"
+                data-id="{{ log.id }}"
+                data-ip="{{ log.source_ip }}"
+                data-method="{{ log.method }}"
+                data-path="{{ log.path }}"
+                data-url="{{ log.url }}"
+                data-query="{{ log.query_string }}"
+                data-user-agent="{{ log.user_agent }}"
+                data-content-length="{{ log.content_length }}"
+                data-status="{{ log.status }}"
+                data-attack="{{ log.attack_type }}"
+                data-risk="{{ log.risk_level }}"
+                data-model="{{ log.model_name }}"
+                 data-confidence="{{ log.confidence }}"
+                data-created="{{ log.created_at }}">
+
+                <td class="traffic-time">
+                    {{ log.created_at }}
+                </td>
+
+                <td>
+                    <span class="ip-address">
+                        {{ log.source_ip }}
+                    </span>
+                </td>
+
+                <td>
+                    <span class="method-badge method-{{ log.method|lower }}">
+                        {{ log.method }}
+                    </span>
+                </td>
+
+                <td>
+                    <div class="request-path"
+                         title="{{ log.path }}">
+                        {{ log.path }}
+                    </div>
+                </td>
+
+                <td>
+
+                    {% if log.status == "Normal" %}
+
+                    <span class="badge-normal">
+                        Normal
+                    </span>
+
+                    {% elif log.status == "Intrusion" %}
+
+                    <span class="badge-danger">
+                        Intrusion
+                    </span>
+
+                    {% else %}
+
+                    <span class="badge-warning">
+                        {{ log.status }}
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+                    {{ log.attack_type }}
+                </td>
+
+                <td>
+                    <span class="risk-badge risk-{{ log.risk_level|lower }}">
+                        {{ log.risk_level }}
+                    </span>
+                </td>
+                <td>{{log.model_name}}</td>
+<td>{{log.confidence}}</td>
+                <td>
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-info view-request">
+
+                        <i class="bi bi-eye"></i>
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <div id="noResults"
+         class="text-center text-secondary py-5"
+         style="display:none;">
+
+        <i class="bi bi-search fs-3 d-block mb-2"></i>
+
+        No traffic matches the selected filters.
+
+    </div>
+
+</div>
+
+
+<!-- REQUEST DETAILS MODAL -->
+<div class="modal fade"
+     id="requestDetailsModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content security-modal">
+
+            <div class="modal-header">
+
+                <div>
+                    <h5 class="modal-title">
+                        Request Details
+                    </h5>
+
+                    <small class="text-secondary">
+                        Captured HTTP request information
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div class="detail-box">
+                            <label>Request ID</label>
+                            <div id="detailId">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-box">
+                            <label>Timestamp</label>
+                            <div id="detailTime">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-box">
+                            <label>Source IP</label>
+                            <div id="detailIp">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-box">
+                            <label>HTTP Method</label>
+                            <div id="detailMethod">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-box">
+                            <label>URL</label>
+                            <div id="detailUrl"
+                                 class="text-break">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-box">
+                            <label>Path</label>
+                            <div id="detailPath"
+                                 class="text-break">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-box">
+                            <label>Query String</label>
+                            <div id="detailQuery"
+                                 class="code-value text-break">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-box">
+                            <label>User Agent</label>
+                            <div id="detailUserAgent"
+                                 class="text-break">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="detail-box">
+                            <label>Content Length</label>
+                            <div id="detailContentLength">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="detail-box">
+                            <label>Classification</label>
+                            <div id="detailStatus">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="detail-box">
+                            <label>Risk Level</label>
+                            <div id="detailRisk">-</div>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="detail-box">
+                            <label>Possible Attack Type</label>
+                            <div id="detailAttack">-</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="detail-box">
+                            <label>Model</label>
+                            <div id="detailModel">-</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="detail-box">
+                           <label>Confidence</label>
+                           <div id="detailConfidence">-</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script src="{{ url_for('static',
+              filename='js/dashboard.js') }}">
+</script>
+
+{% endblock %}

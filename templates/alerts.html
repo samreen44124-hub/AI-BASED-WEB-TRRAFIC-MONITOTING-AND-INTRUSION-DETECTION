@@ -1,0 +1,1410 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts | AI-IDS{% endblock %}
+
+{% block page_title %}Security Alerts{% endblock %}
+
+{% block content %}
+
+<!-- Live Status -->
+
+<div class="d-flex justify-content-end mb-3">
+
+<span id="alertsLiveStatus"
+      class="badge bg-success">
+
+    <i class="bi bi-circle-fill me-1"></i>
+    Live
+
+</span>
+
+
+</div>
+
+<!-- Alert Status Statistics -->
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-4">
+
+
+<!-- Total -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    TOTAL ALERTS
+                </div>
+
+                <div class="stat-value"
+                     id="alertTotal">
+                    {{ statistics.total|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-bell"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Total security alerts generated
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- New -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    NEW
+                </div>
+
+                <div class="stat-value"
+                     id="alertNew">
+                    {{ statistics.new|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-bell-fill"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Alerts requiring attention
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Acknowledged -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    ACKNOWLEDGED
+                </div>
+
+                <div class="stat-value"
+                     id="alertAcknowledged">
+                    {{ statistics.acknowledged|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-check2-square"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Alerts reviewed by administrator
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Resolved -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    RESOLVED
+                </div>
+
+                <div class="stat-value"
+                     id="alertResolved">
+                    {{ statistics.resolved|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-check-circle"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Security alerts marked as resolved
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- Risk Statistics -->
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-4">
+
+
+<!-- Critical -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    CRITICAL
+                </div>
+
+                <div class="stat-value"
+                     id="alertCritical">
+                    {{ statistics.critical|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-exclamation-octagon"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Critical security events
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- High -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    HIGH
+                </div>
+
+                <div class="stat-value"
+                     id="alertHigh">
+                    {{ statistics.high|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-shield-exclamation"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            High-risk security events
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Medium -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    MEDIUM
+                </div>
+
+                <div class="stat-value"
+                     id="alertMedium">
+                    {{ statistics.medium|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-exclamation-triangle"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Medium-risk security events
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Low -->
+<div class="col">
+
+    <div class="security-card">
+
+        <div class="stat-header">
+
+            <div>
+
+                <div class="stat-label">
+                    LOW
+                </div>
+
+                <div class="stat-value"
+                     id="alertLow">
+                    {{ statistics.low|default(0) }}
+                </div>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-info-circle"></i>
+
+            </div>
+
+        </div>
+
+        <div class="stat-footer">
+            Low-risk security events
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- Alerts Table -->
+
+<div class="security-card">
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+    <div>
+
+        <h6 class="mb-1">
+
+            <i class="bi bi-shield-exclamation me-2"></i>
+
+            Recent Security Alerts
+
+        </h6>
+
+        <small class="text-secondary">
+            Security incidents detected by HTTP and network IDS
+        </small>
+
+    </div>
+
+    <button type="button"
+            class="btn btn-sm btn-outline-info"
+            onclick="loadAlerts()">
+
+        <i class="bi bi-arrow-clockwise me-1"></i>
+
+        Refresh
+
+    </button>
+
+</div>
+
+
+<div class="table-responsive">
+
+    <table class="security-table">
+
+        <thead>
+
+        <tr>
+
+            <th>TIME</th>
+
+            <th>SOURCE IP</th>
+
+            <th>HTTP ATTACK</th>
+
+            <th>NETWORK ATTACK</th>
+
+            <th>CORRELATION</th>
+
+            <th>STATUS</th>
+
+            <th>RISK</th>
+
+            <th>CONFIDENCE</th>
+
+            <th>ALERT STATUS</th>
+
+            <th>ACTION</th>
+
+        </tr>
+
+        </thead>
+
+
+        <tbody id="alertsTableBody">
+
+        {% for alert in alerts %}
+
+        <tr>
+
+            <td>
+                {{ alert["alert_time"] or alert["created_at"] or "-" }}
+            </td>
+
+
+            <td>
+                {{ alert["source_ip"] or "-" }}
+            </td>
+
+
+            <td>
+
+                {% if alert["http_attack_type"]
+                      and alert["http_attack_type"] != "Normal" %}
+
+                    <span class="badge-danger">
+                        {{ alert["http_attack_type"] }}
+                    </span>
+
+                {% else %}
+
+                    <span class="text-secondary">
+                        Normal
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                {% if alert["network_attack_type"]
+                      and alert["network_attack_type"] != "Normal" %}
+
+                    <span class="badge-danger">
+                        {{ alert["network_attack_type"] }}
+                    </span>
+
+                {% else %}
+
+                    <span class="text-secondary">
+                        Normal
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                {% if alert["correlation_status"] == "Correlated" %}
+
+                    <span class="badge-normal">
+                        Correlated
+                    </span>
+
+                    {% if alert["correlation_score"] is not none %}
+
+                        <div class="small text-secondary mt-1">
+                            Score:
+                            {{ "%.0f"|format(
+                                alert["correlation_score"]|float
+                            ) }}
+                        </div>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <span class="badge-warning">
+                        Not Correlated
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                {% if alert["status"] == "Intrusion" %}
+
+                    <span class="badge-danger">
+                        Intrusion
+                    </span>
+
+                {% elif alert["status"] == "Suspicious" %}
+
+                    <span class="badge-warning">
+                        Suspicious
+                    </span>
+
+                {% else %}
+
+                    <span class="badge-normal">
+                        {{ alert["status"] or "-" }}
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                {% if alert["risk_level"] == "Critical" %}
+
+                    <span class="badge-danger">
+                        Critical
+                    </span>
+
+                {% elif alert["risk_level"] == "High" %}
+
+                    <span class="badge-warning">
+                        High
+                    </span>
+
+                {% elif alert["risk_level"] == "Medium" %}
+
+                    <span class="badge-warning">
+                        Medium
+                    </span>
+
+                {% else %}
+
+                    <span class="badge-normal">
+                        {{ alert["risk_level"] or "Low" }}
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                {% if alert["confidence"] is not none %}
+
+                    {{ "%.4f"|format(
+                        alert["confidence"]|float
+                    ) }}
+
+                {% else %}
+
+                    -
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                {% if alert["alert_status"] == "New" %}
+
+                    <span class="badge-danger">
+                        New
+                    </span>
+
+                {% elif alert["alert_status"] == "Acknowledged" %}
+
+                    <span class="badge-warning">
+                        Acknowledged
+                    </span>
+
+                {% elif alert["alert_status"] == "Resolved" %}
+
+                    <span class="badge-normal">
+                        Resolved
+                    </span>
+
+                {% else %}
+
+                    <span class="badge-warning">
+                        {{ alert["alert_status"] or "-" }}
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+
+                <div class="d-flex gap-1">
+
+                    {% if alert["alert_status"] != "Acknowledged" %}
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-info"
+                            onclick="updateAlertStatus(
+                                {{ alert['id'] }},
+                                'Acknowledged'
+                            )"
+                            title="Acknowledge">
+
+                        <i class="bi bi-check2"></i>
+
+                    </button>
+
+                    {% endif %}
+
+
+                    {% if alert["alert_status"] != "Resolved" %}
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-info"
+                            onclick="updateAlertStatus(
+                                {{ alert['id'] }},
+                                'Resolved'
+                            )"
+                            title="Resolve">
+
+                        <i class="bi bi-check-circle"></i>
+
+                    </button>
+
+                    {% endif %}
+
+                </div>
+
+            </td>
+
+        </tr>
+
+        {% else %}
+
+        <tr>
+
+            <td colspan="10"
+                class="text-center text-secondary py-4">
+
+                <i class="bi bi-shield-check fs-4 d-block mb-2"></i>
+
+                No security alerts have been generated yet.
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+</div>
+
+<!-- Alert Description -->
+
+<div class="security-card mt-4">
+
+
+<h6 class="mb-3">
+
+    <i class="bi bi-info-circle me-2"></i>
+
+    Alert Information
+
+</h6>
+
+<div class="row">
+
+    <div class="col-md-6">
+
+        <p class="text-secondary mb-2">
+
+            <strong>Correlated:</strong>
+
+            HTTP and network evidence were matched
+            using source IP and time-window analysis.
+
+        </p>
+
+        <p class="text-secondary mb-0">
+
+            <strong>Not Correlated:</strong>
+
+            No matching network evidence was found
+            for the HTTP event.
+
+        </p>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <p class="text-secondary mb-2">
+
+            <strong>New:</strong>
+            Alert requires review.
+
+        </p>
+
+        <p class="text-secondary mb-0">
+
+            <strong>Acknowledged:</strong>
+            Alert has been reviewed.
+
+        </p>
+
+        <p class="text-secondary mb-0">
+
+            <strong>Resolved:</strong>
+            Alert has been handled and closed.
+
+        </p>
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+
+let alertsLoading = false;
+
+
+function escapeAlertHtml(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value === null ||
+        value === undefined
+            ? ""
+            : String(value);
+
+    return div.innerHTML;
+}
+
+
+function alertStatusBadge(status) {
+
+    const safeStatus =
+        escapeAlertHtml(
+            status || "-"
+        );
+
+
+    if (status === "New") {
+
+        return `
+            <span class="badge-danger">
+                New
+            </span>
+        `;
+    }
+
+
+    if (status === "Acknowledged") {
+
+        return `
+            <span class="badge-warning">
+                Acknowledged
+            </span>
+        `;
+    }
+
+
+    if (status === "Resolved") {
+
+        return `
+            <span class="badge-normal">
+                Resolved
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="badge-warning">
+            ${safeStatus}
+        </span>
+    `;
+}
+
+
+function securityStatusBadge(status) {
+
+    const safeStatus =
+        escapeAlertHtml(
+            status || "-"
+        );
+
+
+    if (status === "Intrusion") {
+
+        return `
+            <span class="badge-danger">
+                Intrusion
+            </span>
+        `;
+    }
+
+
+    if (status === "Suspicious") {
+
+        return `
+            <span class="badge-warning">
+                Suspicious
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="badge-normal">
+            ${safeStatus}
+        </span>
+    `;
+}
+
+
+function riskBadge(risk) {
+
+    const safeRisk =
+        escapeAlertHtml(
+            risk || "Low"
+        );
+
+
+    if (risk === "Critical") {
+
+        return `
+            <span class="badge-danger">
+                Critical
+            </span>
+        `;
+    }
+
+
+    if (risk === "High") {
+
+        return `
+            <span class="badge-warning">
+                High
+            </span>
+        `;
+    }
+
+
+    if (risk === "Medium") {
+
+        return `
+            <span class="badge-warning">
+                Medium
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="badge-normal">
+            ${safeRisk}
+        </span>
+    `;
+}
+
+
+function correlationBadge(
+    status,
+    score
+) {
+
+    if (status === "Correlated") {
+
+        const numericScore =
+            Number(score);
+
+
+        let scoreText = "";
+
+
+        if (Number.isFinite(numericScore)) {
+
+            scoreText = `
+                <div class="small text-secondary mt-1">
+                    Score: ${numericScore.toFixed(0)}
+                </div>
+            `;
+        }
+
+
+        return `
+            <span class="badge-normal">
+                Correlated
+            </span>
+
+            ${scoreText}
+        `;
+    }
+
+
+    return `
+        <span class="badge-warning">
+            Not Correlated
+        </span>
+    `;
+}
+
+
+function alertActionButtons(alert) {
+
+    let html = `
+        <div class="d-flex gap-1">
+    `;
+
+
+    if (alert.alert_status !== "Acknowledged") {
+
+        html += `
+            <button type="button"
+                    class="btn btn-sm btn-outline-info"
+                    onclick="updateAlertStatus(
+                        ${Number(alert.id)},
+                        'Acknowledged'
+                    )"
+                    title="Acknowledge">
+
+                <i class="bi bi-check2"></i>
+
+            </button>
+        `;
+    }
+
+
+    if (alert.alert_status !== "Resolved") {
+
+        html += `
+            <button type="button"
+                    class="btn btn-sm btn-outline-info"
+                    onclick="updateAlertStatus(
+                        ${Number(alert.id)},
+                        'Resolved'
+                    )"
+                    title="Resolve">
+
+                <i class="bi bi-check-circle"></i>
+
+            </button>
+        `;
+    }
+
+
+    html += `
+        </div>
+    `;
+
+
+    return html;
+}
+
+
+function updateAlertStatistics(
+    statistics
+) {
+
+    statistics =
+        statistics || {};
+
+
+    const values = {
+
+        alertTotal:
+            statistics.total,
+
+        alertNew:
+            statistics.new,
+
+        alertAcknowledged:
+            statistics.acknowledged,
+
+        alertResolved:
+            statistics.resolved,
+
+        alertCritical:
+            statistics.critical,
+
+        alertHigh:
+            statistics.high,
+
+        alertMedium:
+            statistics.medium,
+
+        alertLow:
+            statistics.low
+    };
+
+
+    Object.entries(
+        values
+    ).forEach(
+        ([id, value]) => {
+
+            const element =
+                document.getElementById(id);
+
+
+            if (element) {
+
+                element.textContent =
+                    value ?? 0;
+            }
+
+        }
+    );
+}
+
+
+function updateAlertsTable(
+    alerts
+) {
+
+    const body =
+        document.getElementById(
+            "alertsTableBody"
+        );
+
+
+    if (!body) {
+        return;
+    }
+
+
+    if (!alerts || alerts.length === 0) {
+
+        body.innerHTML = `
+            <tr>
+
+                <td colspan="10"
+                    class="text-center text-secondary py-4">
+
+                    <i class="bi bi-shield-check fs-4 d-block mb-2"></i>
+
+                    No security alerts have been generated yet.
+
+                </td>
+
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    body.innerHTML =
+        alerts.map(
+            alert => {
+
+                let confidence = "-";
+
+
+                if (
+                    alert.confidence !== null &&
+                    alert.confidence !== undefined
+                ) {
+
+                    const value =
+                        Number(
+                            alert.confidence
+                        );
+
+
+                    if (
+                        Number.isFinite(value)
+                    ) {
+
+                        confidence =
+                            value.toFixed(4);
+                    }
+                }
+
+
+                const httpAttack =
+                    alert.http_attack_type &&
+                    alert.http_attack_type !== "Normal"
+
+                        ? `
+                            <span class="badge-danger">
+                                ${escapeAlertHtml(
+                                    alert.http_attack_type
+                                )}
+                            </span>
+                          `
+
+                        : `
+                            <span class="text-secondary">
+                                Normal
+                            </span>
+                          `;
+
+
+                const networkAttack =
+                    alert.network_attack_type &&
+                    alert.network_attack_type !== "Normal"
+
+                        ? `
+                            <span class="badge-danger">
+                                ${escapeAlertHtml(
+                                    alert.network_attack_type
+                                )}
+                            </span>
+                          `
+
+                        : `
+                            <span class="text-secondary">
+                                Normal
+                            </span>
+                          `;
+
+
+                return `
+                    <tr>
+
+                        <td>
+                            ${escapeAlertHtml(
+                                alert.alert_time ||
+                                alert.created_at ||
+                                "-"
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeAlertHtml(
+                                alert.source_ip ||
+                                "-"
+                            )}
+                        </td>
+
+                        <td>
+                            ${httpAttack}
+                        </td>
+
+                        <td>
+                            ${networkAttack}
+                        </td>
+
+                        <td>
+                            ${correlationBadge(
+                                alert.correlation_status,
+                                alert.correlation_score
+                            )}
+                        </td>
+
+                        <td>
+                            ${securityStatusBadge(
+                                alert.status
+                            )}
+                        </td>
+
+                        <td>
+                            ${riskBadge(
+                                alert.risk_level
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeAlertHtml(
+                                confidence
+                            )}
+                        </td>
+
+                        <td>
+                            ${alertStatusBadge(
+                                alert.alert_status
+                            )}
+                        </td>
+
+                        <td>
+                            ${alertActionButtons(
+                                alert
+                            )}
+                        </td>
+
+                    </tr>
+                `;
+
+            }
+        ).join("");
+}
+
+
+function setAlertsConnection(
+    connected
+) {
+
+    const element =
+        document.getElementById(
+            "alertsLiveStatus"
+        );
+
+
+    if (!element) {
+        return;
+    }
+
+
+    if (connected) {
+
+        element.className =
+            "badge bg-success";
+
+        element.innerHTML = `
+            <i class="bi bi-circle-fill me-1"></i>
+            Live
+        `;
+
+    } else {
+
+        element.className =
+            "badge bg-danger";
+
+        element.innerHTML = `
+            <i class="bi bi-wifi-off me-1"></i>
+            Connection Lost
+        `;
+    }
+}
+
+
+async function loadAlerts() {
+
+    if (alertsLoading) {
+        return;
+    }
+
+
+    alertsLoading = true;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/alerts?limit=100",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Alerts API error"
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message ||
+                "Alert update failed"
+            );
+        }
+
+
+        updateAlertStatistics(
+            data.statistics
+        );
+
+
+        updateAlertsTable(
+            data.alerts
+        );
+
+
+        setAlertsConnection(
+            true
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Alerts update error:",
+            error
+        );
+
+
+        setAlertsConnection(
+            false
+        );
+
+    }
+
+    finally {
+
+        alertsLoading = false;
+    }
+}
+
+async function updateAlertStatus(
+    alertId,
+    alertStatus
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/alerts/${alertId}/status`,
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        "Accept":
+                            "application/json"
+                    },
+
+                    credentials: "same-origin",
+
+                    body: JSON.stringify({
+                        alert_status:
+                            alertStatus
+                    })
+                }
+            );
+
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "";
+
+
+        if (!contentType.includes(
+            "application/json"
+        )) {
+
+            throw new Error(
+                `Server returned HTTP ${response.status} instead of JSON.`
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok ||
+            !data.success) {
+
+            throw new Error(
+                data.message ||
+                "Unable to update alert."
+            );
+        }
+
+
+        await loadAlerts();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Alert status update error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Unable to update alert."
+        );
+    }
+}
+
+loadAlerts();
+
+
+const alertsInterval =
+    setInterval(
+        loadAlerts,
+        3000
+    );
+
+</script>
+
+{% endblock %}

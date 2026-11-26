@@ -1,0 +1,891 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | AI-IDS{% endblock %}
+
+{% block page_title %}Security Reports{% endblock %}
+
+{% block content %}
+
+<!-- =====================================================
+     REPORT HEADER
+===================================================== -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h5 class="mb-1">
+            <i class="bi bi-file-earmark-bar-graph me-2"></i>
+            Security Analysis Report
+        </h5>
+
+        <small class="text-secondary">
+            Combined HTTP, network, correlation and alert analysis
+        </small>
+
+    </div>
+
+    <button
+        type="button"
+        class="btn btn-sm btn-outline-info"
+        onclick="window.location.reload()">
+
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        Refresh Report
+
+    </button>
+
+</div>
+
+
+{% if error %}
+
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Report data could not be loaded.
+</div>
+
+{% endif %}
+
+
+<!-- =====================================================
+     HTTP SUMMARY
+===================================================== -->
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-4">
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        HTTP TRAFFIC
+                    </div>
+
+                    <div class="stat-value">
+                        {{ http_summary.total|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-globe2"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Total HTTP requests analyzed
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        HTTP NORMAL
+                    </div>
+
+                    <div class="stat-value">
+                        {{ http_summary.normal|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Requests classified as normal
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        HTTP SUSPICIOUS
+                    </div>
+
+                    <div class="stat-value">
+                        {{ http_summary.suspicious|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Suspicious HTTP activity
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        HTTP INTRUSIONS
+                    </div>
+
+                    <div class="stat-value">
+                        {{ http_summary.intrusion|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-x"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                HTTP security incidents detected
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     NETWORK SUMMARY
+===================================================== -->
+
+<div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        NETWORK FLOWS
+                    </div>
+
+                    <div class="stat-value">
+                        {{ network_summary.total|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Network flows analyzed
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        NORMAL FLOWS
+                    </div>
+
+                    <div class="stat-value">
+                        {{ network_summary.normal|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Network flows classified as normal
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        NETWORK INTRUSIONS
+                    </div>
+
+                    <div class="stat-value">
+                        {{ network_summary.intrusion|default(0) }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Network security incidents detected
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     ATTACK DISTRIBUTION
+===================================================== -->
+
+<div class="row g-3 mb-4">
+
+    <!-- HTTP ATTACKS -->
+
+    <div class="col-xl-6">
+
+        <div class="security-card">
+
+            <div class="mb-3">
+
+                <h6 class="mb-1">
+                    <i class="bi bi-globe me-2"></i>
+                    HTTP Attack Distribution
+                </h6>
+
+                <small class="text-secondary">
+                    Detected HTTP attack categories
+                </small>
+
+            </div>
+
+            {% if http_attacks %}
+
+                {% for item in http_attacks %}
+
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                    <span>
+                        {{ item.attack_type }}
+                    </span>
+
+                    <span class="badge-danger">
+                        {{ item.count }}
+                    </span>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="text-secondary py-3">
+                    No HTTP attacks recorded.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- NETWORK ATTACKS -->
+
+    <div class="col-xl-6">
+
+        <div class="security-card">
+
+            <div class="mb-3">
+
+                <h6 class="mb-1">
+                    <i class="bi bi-diagram-3 me-2"></i>
+                    Network Attack Distribution
+                </h6>
+
+                <small class="text-secondary">
+                    Detected network attack categories
+                </small>
+
+            </div>
+
+            {% if network_attacks %}
+
+                {% for item in network_attacks %}
+
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                    <span>
+                        {{ item.attack_type }}
+                    </span>
+
+                    <span class="badge-danger">
+                        {{ item.count }}
+                    </span>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="text-secondary py-3">
+                    No network attacks recorded.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     RISK + CORRELATION + STATUS
+===================================================== -->
+
+<div class="row g-3 mb-4">
+
+    <!-- RISK -->
+
+    <div class="col-xl-4">
+
+        <div class="security-card">
+
+            <h6 class="mb-3">
+                <i class="bi bi-exclamation-octagon me-2"></i>
+                Risk Distribution
+            </h6>
+
+            {% if risk_distribution %}
+
+                {% for item in risk_distribution %}
+
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                    <span>
+                        {{ item.risk_level }}
+                    </span>
+
+                    {% if item.risk_level == "Critical" %}
+
+                        <span class="badge-danger">
+                            {{ item.count }}
+                        </span>
+
+                    {% elif item.risk_level == "High" %}
+
+                        <span class="badge-warning">
+                            {{ item.count }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-normal">
+                            {{ item.count }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="text-secondary">
+                    No alert risk data available.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- CORRELATION -->
+
+    <div class="col-xl-4">
+
+        <div class="security-card">
+
+            <h6 class="mb-3">
+                <i class="bi bi-link-45deg me-2"></i>
+                Evidence Correlation
+            </h6>
+
+            {% if correlation_summary %}
+
+                {% for item in correlation_summary %}
+
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                    <span>
+                        {{ item.correlation_status }}
+                    </span>
+
+                    {% if item.correlation_status == "Correlated" %}
+
+                        <span class="badge-normal">
+                            {{ item.count }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-warning">
+                            {{ item.count }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="text-secondary">
+                    No correlation records available.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ALERT STATUS -->
+
+    <div class="col-xl-4">
+
+        <div class="security-card">
+
+            <h6 class="mb-3">
+                <i class="bi bi-bell me-2"></i>
+                Alert Status
+            </h6>
+
+            {% if alert_status_summary %}
+
+                {% for item in alert_status_summary %}
+
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                    <span>
+                        {{ item.alert_status }}
+                    </span>
+
+                    {% if item.alert_status == "Resolved" %}
+
+                        <span class="badge-normal">
+                            {{ item.count }}
+                        </span>
+
+                    {% elif item.alert_status == "New" %}
+
+                        <span class="badge-danger">
+                            {{ item.count }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-warning">
+                            {{ item.count }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="text-secondary">
+                    No alert status data available.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     RECENT SECURITY INCIDENTS
+===================================================== -->
+
+<div class="security-card">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <h6 class="mb-1">
+                <i class="bi bi-shield-exclamation me-2"></i>
+                Recent Security Incidents
+            </h6>
+
+            <small class="text-secondary">
+                Latest incidents generated by the IDS decision engine
+            </small>
+
+        </div>
+
+        <span class="badge bg-secondary">
+            {{ recent_incidents|length }} records
+        </span>
+
+    </div>
+
+
+    <div class="table-responsive">
+
+        <table class="security-table">
+
+            <thead>
+
+            <tr>
+
+                <th>TIME</th>
+                <th>SOURCE IP</th>
+                <th>HTTP ATTACK</th>
+                <th>NETWORK ATTACK</th>
+                <th>CORRELATION</th>
+                <th>STATUS</th>
+                <th>RISK</th>
+                <th>CONFIDENCE</th>
+                <th>ALERT</th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for alert in recent_incidents %}
+
+            <tr>
+
+                <td>
+                    {{ alert.alert_time or "-" }}
+                </td>
+
+                <td>
+                    {{ alert.source_ip or "-" }}
+                </td>
+
+                <td>
+
+                    {% if alert.http_attack_type
+                          and alert.http_attack_type != "Normal" %}
+
+                        <span class="badge-danger">
+                            {{ alert.http_attack_type }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="text-secondary">
+                            Normal
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if alert.network_attack_type
+                          and alert.network_attack_type != "Normal" %}
+
+                        <span class="badge-danger">
+                            {{ alert.network_attack_type }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="text-secondary">
+                            Normal
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if alert.correlation_status == "Correlated" %}
+
+                        <span class="badge-normal">
+                            Correlated
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-warning">
+                            Not Correlated
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if alert.status == "Intrusion" %}
+
+                        <span class="badge-danger">
+                            Intrusion
+                        </span>
+
+                    {% elif alert.status == "Suspicious" %}
+
+                        <span class="badge-warning">
+                            Suspicious
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-normal">
+                            {{ alert.status or "-" }}
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if alert.risk_level == "Critical" %}
+
+                        <span class="badge-danger">
+                            Critical
+                        </span>
+
+                    {% elif alert.risk_level == "High" %}
+
+                        <span class="badge-warning">
+                            High
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-normal">
+                            {{ alert.risk_level or "Low" }}
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if alert.confidence is not none %}
+
+                        {{ "%.4f"|format(alert.confidence|float) }}
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if alert.alert_status == "New" %}
+
+                        <span class="badge-danger">
+                            New
+                        </span>
+
+                    {% elif alert.alert_status == "Acknowledged" %}
+
+                        <span class="badge-warning">
+                            Acknowledged
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge-normal">
+                            {{ alert.alert_status or "-" }}
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="9"
+                    class="text-center text-secondary py-4">
+
+                    <i class="bi bi-shield-check fs-4 d-block mb-2"></i>
+
+                    No security incidents have been recorded.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     REPORT METHODOLOGY
+===================================================== -->
+
+<div class="security-card mt-4">
+
+    <h6 class="mb-3">
+
+        <i class="bi bi-info-circle me-2"></i>
+
+        Report Methodology
+
+    </h6>
+
+    <div class="row">
+
+        <div class="col-md-4">
+
+            <p class="text-secondary mb-2">
+
+                <strong>HTTP Detection</strong>
+
+            </p>
+
+            <p class="text-secondary">
+
+                HTTP requests are analyzed using the CSIC HTTP
+                detection model together with the HTTP attack
+                detection layer.
+
+            </p>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <p class="text-secondary mb-2">
+
+                <strong>Network Detection</strong>
+
+            </p>
+
+            <p class="text-secondary">
+
+                Network flows are analyzed using the
+                CIC-IDS2017-compatible Random Forest network model.
+
+            </p>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <p class="text-secondary mb-2">
+
+                <strong>Correlation</strong>
+
+            </p>
+
+            <p class="text-secondary">
+
+                HTTP and network evidence can be correlated using
+                source IP and temporal proximity before the final
+                security decision is generated.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

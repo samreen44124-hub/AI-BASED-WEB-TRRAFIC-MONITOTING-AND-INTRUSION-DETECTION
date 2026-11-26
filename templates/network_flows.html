@@ -1,0 +1,765 @@
+{% extends "base.html" %}
+
+{% block title %}Network Flows | AI-IDS{% endblock %}
+
+{% block page_title %}Network Flow Monitoring{% endblock %}
+
+
+{% block content %}
+
+<!-- Network Statistics -->
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-4">
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        TOTAL FLOWS
+                    </div>
+
+                    <div class="stat-value"
+                         id="networkTotal">
+
+                        {{ network_statistics.total|default(0) }}
+
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Total network flows analyzed
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        NORMAL FLOWS
+                    </div>
+
+                    <div class="stat-value"
+                         id="networkNormal">
+
+                        {{ network_statistics.normal|default(0) }}
+
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Network traffic classified as normal
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        INTRUSIONS
+                    </div>
+
+                    <div class="stat-value"
+                         id="networkIntrusion">
+
+                        {{ network_statistics.intrusion|default(0) }}
+
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Network intrusion events detected
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col">
+
+        <div class="security-card">
+
+            <div class="stat-header">
+
+                <div>
+
+                    <div class="stat-label">
+                        CRITICAL
+                    </div>
+
+                    <div class="stat-value"
+                         id="networkCritical">
+
+                        {{ network_statistics.critical|default(0) }}
+
+                    </div>
+
+                </div>
+
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-octagon"></i>
+                </div>
+
+            </div>
+
+            <div class="stat-footer">
+                Critical network security events
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Network Flow Table -->
+
+<div class="security-card">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <h6 class="mb-1">
+
+                <i class="bi bi-diagram-3 me-2"></i>
+
+                Network Flows
+
+            </h6>
+
+            <small class="text-secondary">
+                Network traffic analyzed by CICFlowMeter and the AI model
+            </small>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <a href="{{ url_for('dashboard') }}"
+               class="btn btn-sm btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Dashboard
+
+            </a>
+
+            <span id="networkPageStatus"
+                  class="badge bg-success align-self-center">
+
+                <i class="bi bi-circle-fill me-1"></i>
+
+                Live
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    {% if error %}
+
+    <div class="alert alert-danger">
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+
+    <div class="table-responsive">
+
+        <table class="security-table">
+
+            <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>TIME</th>
+
+                <th>SOURCE IP</th>
+
+                <th>SOURCE PORT</th>
+
+                <th>DESTINATION IP</th>
+
+                <th>DEST. PORT</th>
+
+                <th>PROTOCOL</th>
+
+                <th>CLASSIFICATION</th>
+
+                <th>ATTACK TYPE</th>
+
+                <th>RISK</th>
+
+                <th>CONFIDENCE</th>
+
+                <th>MODEL</th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody id="networkFlowsBody">
+
+            {% for flow in network_flows %}
+
+            <tr>
+
+                <td>
+                    {{ flow["id"] }}
+                </td>
+
+
+                <td>
+                    {{ flow["created_at"] }}
+                </td>
+
+
+                <td>
+                    {{ flow["source_ip"] }}
+                </td>
+
+
+                <td>
+                    {{ flow["source_port"] }}
+                </td>
+
+
+                <td>
+                    {{ flow["destination_ip"] }}
+                </td>
+
+
+                <td>
+                    {{ flow["destination_port"] }}
+                </td>
+
+
+                <td>
+                    {{ flow["protocol"] }}
+                </td>
+
+
+                <td>
+
+                    {% if flow["status"] == "Normal" %}
+
+                    <span class="badge-normal">
+                        Normal
+                    </span>
+
+                    {% elif flow["status"] == "Intrusion" %}
+
+                    <span class="badge-danger">
+                        Intrusion
+                    </span>
+
+                    {% else %}
+
+                    <span class="badge-warning">
+                        {{ flow["status"] }}
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <td>
+                    {{ flow["attack_type"] or "-" }}
+                </td>
+
+
+                <td>
+
+                    {% if flow["risk_level"] == "Critical" %}
+
+                    <span class="badge-danger">
+                        Critical
+                    </span>
+
+                    {% elif flow["risk_level"] == "High" %}
+
+                    <span class="badge-warning">
+                        High
+                    </span>
+
+                    {% elif flow["risk_level"] == "Medium" %}
+
+                    <span class="badge-warning">
+                        Medium
+                    </span>
+
+                    {% else %}
+
+                    <span class="badge-normal">
+                        {{ flow["risk_level"] or "Low" }}
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <td>
+
+                    {% if flow["confidence"] is not none %}
+
+                        {{ "%.4f"|format(flow["confidence"]) }}
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+
+                <td>
+                    {{ flow["model_name"] or "-" }}
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="12"
+                    class="text-center text-secondary py-4">
+
+                    No network flows have been captured yet.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+function escapeNetworkHtml(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value === null ||
+        value === undefined
+            ? ""
+            : String(value);
+
+    return div.innerHTML;
+}
+
+
+function networkStatusBadge(status) {
+
+    if (status === "Normal") {
+
+        return `
+            <span class="badge-normal">
+                Normal
+            </span>
+        `;
+    }
+
+
+    if (status === "Intrusion") {
+
+        return `
+            <span class="badge-danger">
+                Intrusion
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="badge-warning">
+            ${escapeNetworkHtml(status || "Unknown")}
+        </span>
+    `;
+}
+
+
+function networkRiskBadge(risk) {
+
+    if (risk === "Critical") {
+
+        return `
+            <span class="badge-danger">
+                Critical
+            </span>
+        `;
+    }
+
+
+    if (
+        risk === "High" ||
+        risk === "Medium"
+    ) {
+
+        return `
+            <span class="badge-warning">
+                ${escapeNetworkHtml(risk)}
+            </span>
+        `;
+    }
+
+
+    return `
+        <span class="badge-normal">
+            ${escapeNetworkHtml(risk || "Low")}
+        </span>
+    `;
+}
+
+
+function updateNetworkStatistics(
+    statistics
+) {
+
+    statistics = statistics || {};
+
+
+    document.getElementById(
+        "networkTotal"
+    ).textContent =
+        statistics.total || 0;
+
+
+    document.getElementById(
+        "networkNormal"
+    ).textContent =
+        statistics.normal || 0;
+
+
+    document.getElementById(
+        "networkIntrusion"
+    ).textContent =
+        statistics.intrusion || 0;
+
+
+    document.getElementById(
+        "networkCritical"
+    ).textContent =
+        statistics.critical || 0;
+}
+
+
+function updateNetworkFlows(
+    flows
+) {
+
+    const body =
+        document.getElementById(
+            "networkFlowsBody"
+        );
+
+
+    if (!body) {
+        return;
+    }
+
+
+    if (!flows || flows.length === 0) {
+
+        body.innerHTML = `
+            <tr>
+
+                <td colspan="12"
+                    class="text-center text-secondary py-4">
+
+                    No network flows have been captured yet.
+
+                </td>
+
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    body.innerHTML =
+        flows.map(flow => {
+
+            let confidence = "-";
+
+
+            if (
+                flow.confidence !== null &&
+                flow.confidence !== undefined
+            ) {
+
+                const value =
+                    Number(flow.confidence);
+
+
+                if (
+                    Number.isFinite(value)
+                ) {
+
+                    confidence =
+                        value.toFixed(4);
+                }
+            }
+
+
+            return `
+                <tr>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.id
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.created_at ||
+                            flow.flow_timestamp ||
+                            "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.source_ip || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.source_port ?? "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.destination_ip || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.destination_port ?? "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.protocol ?? "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${networkStatusBadge(
+                            flow.status
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.attack_type || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${networkRiskBadge(
+                            flow.risk_level
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            confidence
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeNetworkHtml(
+                            flow.model_name || "-"
+                        )}
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+}
+
+
+async function loadNetworkFlows() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/network-flows?limit=100",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Network API error"
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message ||
+                "Network update failed"
+            );
+        }
+
+
+        updateNetworkStatistics(
+            data.statistics
+        );
+
+
+        updateNetworkFlows(
+            data.flows
+        );
+
+
+        const status =
+            document.getElementById(
+                "networkPageStatus"
+            );
+
+
+        if (status) {
+
+            status.className =
+                "badge bg-success align-self-center";
+
+            status.innerHTML = `
+                <i class="bi bi-circle-fill me-1"></i>
+                Live
+            `;
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Network flow update error:",
+            error
+        );
+
+
+        const status =
+            document.getElementById(
+                "networkPageStatus"
+            );
+
+
+        if (status) {
+
+            status.className =
+                "badge bg-danger align-self-center";
+
+            status.innerHTML = `
+                <i class="bi bi-wifi-off me-1"></i>
+                Connection Lost
+            `;
+        }
+
+    }
+}
+
+
+loadNetworkFlows();
+
+
+setInterval(
+    loadNetworkFlows,
+    3000
+);
+
+</script>
+
+{% endblock %}
